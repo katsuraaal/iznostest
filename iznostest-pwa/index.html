@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Износостойкость вещей</title>
+<meta name="theme-color" content="#27407a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="ИзносТест">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<script>
+/* Адрес вашего сервера распознавания по фото (см. README). Пусто: сканер отключён. */
+window.SCAN_ENDPOINT = "";
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600&family=Unbounded:wght@500;700&display=swap">
+<style>
+:root{
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  --paper:#eceef1; --card:#ffffff; --ink:#1b2233; --muted:#5b6578;
+  --denim:#27407a; --stitch:#d9a521; --line:#cfd4dd; --good:#2f7d4f; --bad:#b3402f;
+  --body:"Onest",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --display:"Unbounded","Onest",system-ui,sans-serif;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --paper:#141824; --card:#1d2333; --ink:#e8ebf2; --muted:#9aa3b8;
+    --denim:#8fa8ee; --stitch:#e8b93a; --line:#343c52; --good:#6fcf97; --bad:#f08a78;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#141824; --card:#1d2333; --ink:#e8ebf2; --muted:#9aa3b8;
+  --denim:#8fa8ee; --stitch:#e8b93a; --line:#343c52; --good:#6fcf97; --bad:#f08a78;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--body);line-height:1.5}
+main{max-width:720px;margin:0 auto;padding:28px 18px 48px}
+h1{font-family:var(--display);font-weight:700;font-size:clamp(1.5rem,5vw,2.1rem);line-height:1.15;margin:0 0 8px}
+.lead{color:var(--muted);margin:0 0 24px;max-width:60ch}
+.tabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px;border-bottom:2px dashed var(--stitch)}
+.tab{font:inherit;font-weight:500;background:none;border:0;color:var(--muted);padding:10px 14px;cursor:pointer;border-radius:8px 8px 0 0}
+.tab[aria-selected="true"]{color:var(--ink);background:var(--card)}
+.tab:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid var(--denim);outline-offset:2px}
+.panel{background:var(--card);border-radius:12px;padding:20px;border:1px solid var(--line)}
+.panel[hidden]{display:none}
+.grid{display:grid;gap:16px;grid-template-columns:1fr 1fr}
+@media (max-width:560px){.grid{grid-template-columns:1fr}}
+label{display:block;font-weight:500;font-size:.92rem;margin-bottom:6px}
+.hint{display:block;font-weight:400;color:var(--muted);font-size:.82rem}
+select,input[type=number]{width:100%;font:inherit;color:var(--ink);background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:10px}
+input[type=range]{width:100%;accent-color:var(--denim)}
+
+.intensity-card{padding:16px 18px 14px;background:linear-gradient(145deg,var(--card),var(--paper));border:1px solid var(--line);border-radius:14px}
+.intensity-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}
+.intensity-heading label{margin:0;font-size:.96rem;font-weight:600}
+.intensity-value{display:flex;align-items:baseline;gap:6px;white-space:nowrap;padding:5px 10px;border-radius:9px;background:var(--denim);color:#fff;font-variant-numeric:tabular-nums}
+.intensity-value b{font-family:var(--display);font-size:1.1rem}
+.intensity-value small{font-size:.72rem;opacity:.9}
+input[type=range].intensity-range{--range-progress:15%;appearance:none;-webkit-appearance:none;display:block;width:100%;height:7px;margin:8px 0 12px;padding:0;border:0;border-radius:99px;background:linear-gradient(to right,var(--denim) 0 var(--range-progress),var(--line) var(--range-progress) 100%);cursor:pointer;touch-action:pan-y}
+input[type=range].intensity-range::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border:4px solid var(--card);border-radius:50%;background:var(--denim);box-shadow:0 1px 5px #0003}
+input[type=range].intensity-range::-moz-range-thumb{width:15px;height:15px;border:4px solid var(--card);border-radius:50%;background:var(--denim);box-shadow:0 1px 5px #0003}
+input[type=range].intensity-range:focus-visible{outline:3px solid var(--stitch);outline-offset:7px}
+.intensity-scale{display:flex;justify-content:space-between;gap:8px;color:var(--muted);font-size:.72rem}
+.intensity-scale span:nth-child(2){text-align:center}
+.intensity-scale span:last-child{text-align:right}
+.intensity-hint{margin:10px 0 0;color:var(--muted);font-size:.8rem}
+@media(max-width:420px){.intensity-card{padding:14px}.intensity-scale{font-size:.66rem}}
+@media(prefers-reduced-motion:no-preference){input[type=range].intensity-range{transition:background .12s ease}}
+
+.full{grid-column:1/-1}
+.result{margin-top:22px;padding-top:20px;border-top:1px solid var(--line)}
+.big{font-family:var(--display);font-weight:700;font-size:clamp(1.8rem,7vw,2.8rem);line-height:1.1;margin:0}
+.verdict{font-weight:600;margin:6px 0 14px}
+.bar{height:14px;border-radius:7px;background:var(--paper);border:1px dashed var(--stitch);overflow:hidden}
+.bar>i{display:block;height:100%;background:var(--denim);width:0;transition:width .3s}
+.meta{color:var(--muted);font-size:.88rem;margin-top:10px}
+.note{color:var(--muted);font-size:.82rem;margin-top:18px;max-width:64ch}
+input[type=file]{width:100%;font:inherit;color:var(--ink);margin-bottom:12px}
+#tagimg{display:block;max-width:100%;max-height:220px;border-radius:8px;border:1px solid var(--line);margin-bottom:12px}
+#tagimg[hidden]{display:none}
+.btn{font:inherit;font-weight:600;background:var(--denim);color:var(--paper);border:0;border-radius:8px;padding:10px 16px;cursor:pointer}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn[hidden]{display:none}
+.btn:focus-visible{outline:3px solid var(--stitch);outline-offset:2px}
+#scanOut,#idx{white-space:pre-line}
+[hidden]{display:none!important}
+#scanKind{margin-bottom:14px}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--card);z-index:30}
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--card);border-bottom:1px solid var(--line)}
+.bar2{max-width:900px;margin:0 auto;padding:10px 18px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.brand{font-family:var(--display);font-weight:700;color:var(--ink);text-decoration:none}
+.brand span{color:var(--denim)}
+nav{display:flex;gap:4px;align-items:center}
+nav a,.ddb{font:inherit;font-weight:500;color:var(--muted);background:none;border:0;padding:8px 12px;border-radius:8px;cursor:pointer;text-decoration:none;display:block}
+nav a:hover,.ddb:hover{color:var(--ink);background:var(--paper)}
+nav a.on,.ddb.on{color:var(--ink);box-shadow:inset 0 -2px 0 var(--stitch)}
+.dd{position:relative}
+.ddm{display:none;position:absolute;top:100%;left:0;min-width:160px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:6px;box-shadow:0 8px 24px rgba(0,0,0,.14)}
+.dd:hover .ddm,.dd:focus-within .ddm,.dd.open .ddm{display:block}
+.burger{display:none;font:inherit;font-weight:600;background:var(--paper);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:8px 12px;cursor:pointer}
+nav a:focus-visible,.ddb:focus-visible,.burger:focus-visible,.card:focus-visible,.brand:focus-visible{outline:3px solid var(--denim);outline-offset:2px}
+@media (max-width:700px){
+  .burger{display:block}
+  nav{display:none;width:100%;flex-direction:column;align-items:stretch}
+  nav.open{display:flex}
+  .ddm{display:block;position:static;border:0;box-shadow:none;padding:0 0 0 14px;background:none}
+}
+.cards{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));margin:24px 0}
+.card{display:block;background:var(--card);border:1px solid var(--line);border-top:3px dashed var(--stitch);border-radius:12px;padding:16px;color:inherit;text-decoration:none}
+.card b{font-family:var(--display);display:block;margin-bottom:6px}
+.card span{color:var(--muted);font-size:.9rem}
+h2{font-family:var(--display);font-size:1.1rem;margin:24px 0 10px}
+h2:first-child{margin-top:0}
+.steps{padding-left:20px;max-width:60ch}
+.tw{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:.92rem}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line)}
+th{color:var(--muted);font-weight:500}
+.foot{max-width:760px;margin:0 auto;padding:0 18px 32px;color:var(--muted);font-size:.85rem}
+.ddm{min-width:210px;max-height:70vh;overflow-y:auto}
+@media (max-width:700px){.ddm{max-height:none;overflow:visible}}
+#tips h2{margin-top:22px}
+#tl{padding-left:20px;max-width:60ch;margin:0}
+details{margin:8px 0;border:1px solid var(--line);border-radius:8px;padding:8px 12px}
+summary{cursor:pointer;font-weight:500}
+#p1[data-pick] > :not(#agebox){display:none}
+#agebox .cards{margin:12px 0 16px}
+button.card{font:inherit;color:inherit;text-align:left;cursor:pointer;width:100%}
+.card.on{box-shadow:0 0 0 2px var(--denim)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 10px}.chip{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border:1px solid currentColor;border-radius:999px;font-size:.9rem;cursor:pointer;user-select:none}.chip input{margin:0}
+
+/* Условия среды: компактный раскрывающийся блок */
+.env-details{
+  margin:0;
+  padding:0;
+  overflow:hidden;
+  border:1px solid var(--line);
+  border-radius:14px;
+  background:var(--paper);
+  transition:border-color .2s,box-shadow .2s;
+}
+.env-details[open]{
+  border-color:var(--denim);
+  box-shadow:0 4px 18px rgba(39,64,122,.07);
+}
+.env-summary{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:14px 16px;
+  margin:0;
+  list-style:none;
+  cursor:pointer;
+  user-select:none;
+}
+.env-summary::-webkit-details-marker{display:none}
+.env-summary::marker{content:""}
+.env-summary:focus-visible{outline:3px solid var(--denim);outline-offset:-3px;border-radius:13px}
+.env-summary-main{display:flex;align-items:center;gap:12px;min-width:0}
+.env-icon{
+  display:grid;
+  place-items:center;
+  flex:0 0 40px;
+  width:40px;
+  height:40px;
+  border-radius:12px;
+  background:var(--card);
+  color:var(--denim);
+  font-size:1.25rem;
+}
+.env-summary-copy{display:flex;flex-direction:column;gap:2px;min-width:0}
+.env-summary-copy strong{font-size:.98rem;font-weight:600}
+.env-subtitle{font-size:.8rem;color:var(--muted);font-weight:400}
+.env-summary-side{display:flex;align-items:center;gap:10px;flex-shrink:0}
+.env-count{
+  padding:5px 9px;
+  border-radius:999px;
+  background:var(--card);
+  color:var(--denim);
+  font-size:.76rem;
+  font-weight:600;
+  white-space:nowrap;
+}
+.env-chevron{color:var(--muted);font-size:1.25rem;line-height:1;transition:transform .2s}
+.env-details[open] .env-chevron{transform:rotate(180deg)}
+.env-content{padding:0 16px 16px;animation:envReveal .18s ease-out}
+.env-help{margin:0 0 12px;color:var(--muted);font-size:.82rem}
+#env.chips{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:0}
+#env .chip{
+  display:flex;
+  align-items:center;
+  gap:9px;
+  min-width:0;
+  min-height:44px;
+  margin:0;
+  padding:9px 11px;
+  border:1px solid var(--line);
+  border-radius:10px;
+  background:var(--card);
+  color:var(--ink);
+  font-size:.83rem;
+  line-height:1.3;
+  transition:border-color .15s,background .15s,box-shadow .15s;
+}
+#env .chip span{display:block}
+#env .chip input{flex:0 0 auto;width:16px;height:16px;margin:0;accent-color:var(--denim)}
+#env .chip:has(input:checked){
+  border-color:var(--denim);
+  background:color-mix(in srgb,var(--denim) 8%,var(--card));
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--denim) 18%,transparent);
+}
+@keyframes envReveal{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:560px){
+  .env-summary{padding:12px}
+  .env-content{padding:0 12px 12px}
+  #env.chips{grid-template-columns:1fr}
+  #env .chip{min-height:42px}
+  .env-subtitle{max-width:190px}
+}
+@media(prefers-reduced-motion:reduce){
+  .env-details,.env-chevron,#env .chip{transition:none}
+  .env-content{animation:none}
+}
+
+/* Единый аккуратный выбор материала, толщины и ухода */
+.choice-native{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
+.choice-details{position:relative;margin:0;padding:0;border:1px solid var(--line);border-radius:13px;background:var(--paper);overflow:hidden;transition:border-color .18s,box-shadow .18s}
+.choice-details[open]{border-color:var(--denim);box-shadow:0 4px 18px rgba(39,64,122,.07)}
+.choice-summary{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 14px;list-style:none;cursor:pointer;user-select:none}
+.choice-summary::-webkit-details-marker{display:none}.choice-summary::marker{content:""}
+.choice-summary:focus-visible{outline:3px solid var(--denim);outline-offset:-3px;border-radius:12px}
+.choice-summary-main{display:flex;flex-direction:column;gap:2px;min-width:0}
+.choice-summary-title{font-size:.75rem;color:var(--muted);font-weight:500}
+.choice-current{font-size:.94rem;font-weight:600;color:var(--ink)}
+.choice-chevron{color:var(--muted);font-size:1.1rem;transition:transform .18s}
+.choice-details[open] .choice-chevron{transform:rotate(180deg)}
+.choice-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;padding:0 10px 10px;max-height:260px;overflow-y:auto;animation:envReveal .16s ease-out}
+.choice-option{display:flex;align-items:center;min-height:42px;padding:9px 11px;border:1px solid var(--line);border-radius:9px;background:var(--card);color:var(--ink);font:inherit;font-size:.82rem;text-align:left;cursor:pointer;transition:border-color .15s,background .15s,box-shadow .15s}
+.choice-option:hover{border-color:var(--denim)}
+.choice-option[aria-pressed="true"]{border-color:var(--denim);background:color-mix(in srgb,var(--denim) 9%,var(--card));box-shadow:inset 0 0 0 1px var(--denim);font-weight:600}
+.choice-option:focus-visible{outline:3px solid var(--denim);outline-offset:2px}
+@media(max-width:560px){.choice-options{grid-template-columns:1fr;max-height:220px}.choice-summary{padding:12px}}
+@media(prefers-reduced-motion:reduce){.choice-details,.choice-chevron,.choice-option{transition:none}.choice-options{animation:none}}
+
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="bar2">
+    <a class="brand" href="#home" data-go="home">Износ<span>Тест</span></a>
+    <button class="burger" id="burger" aria-expanded="false" aria-controls="nav">Меню</button>
+    <nav id="nav" aria-label="Основное меню">
+      <a href="#home" data-go="home">Главная</a>
+      <div class="dd">
+        <button class="ddb" data-dd="age" aria-haspopup="true">Возраст ▾</button>
+        <div class="ddm" id="ddma"></div>
+      </div>
+      <div class="dd">
+        <button class="ddb" data-dd="cat" aria-haspopup="true">Категории ▾</button>
+        <div class="ddm" id="ddm"></div>
+      </div>
+      <a href="#scan" data-go="scan">По фото</a>
+      <a href="#method" data-go="method">Методика</a>
+    </nav>
+  </div>
+</header>
+<main>
+  <section id="p0" aria-labelledby="h0">
+    <h1 id="h0">Износостойкость вещей</h1>
+    <p class="lead">Узнайте, сколько прослужат ваши вещи и обувь, и проверьте их по бирке или фотографии.</p>
+    <h2>Выберите возраст</h2>
+    <div class="cards" id="acards"></div>
+    <h2>Или проверьте по фото</h2>
+    <div class="cards" id="cards"></div>
+    <h2>Как это работает</h2>
+    <ol class="steps">
+      <li>Выберите возраст, затем вещь: бельё, верхнюю одежду, шапки, обувь и другое.</li>
+      <li>Укажите материал и условия или сфотографируйте бирку, и параметры подставятся сами.</li>
+      <li>Получите ориентировочный срок службы, индекс износостойкости и слабое звено.</li>
+    </ol>
+  </section>
+
+  <div id="ptitle" hidden>
+    <h1 id="pt"></h1>
+    <p class="lead" id="pl"></p>
+  </div>
+
+  <section class="panel" id="p1" aria-labelledby="pt" hidden>
+    <div id="agebox" hidden>
+      <h2>Выберите, что проверяем</h2>
+      <div class="cards" id="atiles"></div>
+    </div>
+    <div class="grid">
+      <div class="full" hidden>
+        <label for="kind">Что проверяем</label>
+        <select id="kind"><option value="item">Вещь</option><option value="shoe">Обувь</option></select>
+      </div>
+      <div data-g="shoe" hidden><label for="upper">Материал верха</label><select id="upper"></select></div>
+      <div data-g="shoe" hidden><label for="sole">Подошва</label><select id="sole"></select></div>
+      <div data-g="shoe" hidden><label for="cons">Крепление подошвы</label><select id="cons"></select></div>
+      <div data-g="shoe" hidden><label for="cond">Состояние сейчас</label><select id="cond"><option value="1">Новая</option><option value="0.75">Лёгкий износ</option><option value="0.4">Заметный износ</option><option value="0.1">Сильный износ</option></select></div>
+      <div data-g="item">
+        <label for="mat">Материал</label>
+        <select id="mat">
+          <option value="48">Нейлон / кордура</option>
+          <option value="60">Кожа</option>
+          <option value="36" selected>Деним (джинса)</option>
+          <option value="40">Полиэстер</option>
+          <option value="30">Шерсть</option>
+          <option value="24">Хлопок</option>
+          <option value="20">Лён</option>
+          <option value="30">Резина (подошва)</option>
+          <option value="60">Пластик ABS</option>
+          <option value="120">Сталь / металл</option>
+        </select>
+      </div>
+      <div data-g="item">
+        <label for="thick">Толщина материала</label>
+        <select id="thick">
+          <option value="0.7">Тонкий</option>
+          <option value="1" selected>Средний</option>
+          <option value="1.4">Плотный</option>
+        </select>
+      </div>
+      <div class="full intensity-card" data-g="item">
+        <div class="intensity-heading">
+          <label for="hours">Интенсивность использования</label>
+          <span class="intensity-value"><b id="hv">10</b><small>ч / неделю</small></span>
+        </div>
+        <input class="intensity-range" type="range" id="hours" min="1" max="60" value="10">
+        <div class="intensity-scale"><span>Редко</span><span>Регулярно</span><span>Почти постоянно</span></div>
+        <p class="intensity-hint">Укажите, сколько часов в неделю вещь обычно используется</p>
+      </div>
+      <div class="full intensity-card" data-g="shoe" hidden>
+        <div class="intensity-heading">
+          <label for="km">Интенсивность использования</label>
+          <span class="intensity-value"><b id="kv">20</b><small>км / неделю</small></span>
+        </div>
+        <input class="intensity-range" type="range" id="km" min="2" max="100" value="20">
+        <div class="intensity-scale"><span>Небольшой пробег</span><span>Средний</span><span>Большой</span></div>
+        <p class="intensity-hint">Укажите примерный еженедельный пробег в этой обуви</p>
+      </div>
+      <div class="full">
+        <details class="env-details" id="envDetails">
+          <summary class="env-summary">
+            <span class="env-summary-main">
+              <span class="env-icon" aria-hidden="true"></span>
+              <span class="env-summary-copy">
+                <strong>Условия среды</strong>
+                <span class="env-subtitle">Выберите, где и как используется вещь</span>
+              </span>
+            </span>
+            <span class="env-summary-side">
+              <span class="env-count" id="envCount">1 условие</span>
+              <span class="env-chevron" aria-hidden="true">⌄</span>
+            </span>
+          </summary>
+          <div class="env-content">
+            <p class="env-help">Можно выбрать несколько вариантов. Чем суровее условия, тем быстрее изнашивается материал.</p>
+            <div id="env" class="chips" aria-label="Выбор условий среды">
+              <label class="chip"><input type="checkbox" value="1" checked><span>Бытовые, в помещении</span></label>
+              <label class="chip"><input type="checkbox" value="1.3"><span>Влага, дождь</span></label>
+              <label class="chip"><input type="checkbox" value="1.4"><span>️ Солнце, ультрафиолет</span></label>
+              <label class="chip"><input type="checkbox" value="1.8"><span>Абразив: песок, камни</span></label>
+              <label class="chip"><input type="checkbox" value="1.5"><span>Снег, реагенты на дорогах</span></label>
+              <label class="chip"><input type="checkbox" value="1.3"><span>Морская вода, соль</span></label>
+              <label class="chip"><input type="checkbox" value="1.4"><span>Жара, пот, тренировки</span></label>
+              <label class="chip"><input type="checkbox" value="1.15"><span>Мороз, сильный холод</span></label>
+              <label class="chip"><input type="checkbox" value="1.1"><span>Город: пыль, грязь, выхлопы</span></label>
+              <label class="chip"><input type="checkbox" value="1.2"><span>Сырость, плохая вентиляция</span></label>
+            </div>
+          </div>
+        </details>
+      </div>
+      <div>
+        <label for="care">Уход</label>
+        <select id="care">
+          <option value="0.8">Хороший</option>
+          <option value="1" selected>Обычный</option>
+          <option value="1.3">Плохой или его нет</option>
+        </select>
+      </div>
+    </div>
+    <div class="result" aria-live="polite">
+      <p class="big" id="life">—</p>
+      <p class="verdict" id="verd"></p>
+      <div class="bar"><i id="bar"></i></div>
+      <p class="meta" id="idx"></p>
+    </div>
+    <div id="tips" hidden>
+      <h2>Советы по уходу</h2>
+      <ul id="tl"></ul>
+    </div>
+    <p class="note">Это упрощённая модель: базовый срок материала корректируется с учётом интенсивности использования, условий среды и ухода. Цифры ориентировочные и не заменяют лабораторных испытаний.</p>
+  </section>
+
+  <section class="panel" id="p3" aria-labelledby="pt" hidden>
+    <label for="scanKind">Что на фото</label>
+    <select id="scanKind"><option value="tag">Бирка с составом</option><option value="shoe">Обувь</option></select>
+    <label for="tagfile">Фото <span class="hint" id="scanHint">снимите ярлык с составом крупно или выберите файл</span></label>
+    <input type="file" id="tagfile" accept="image/*" capture="environment" multiple>
+    <img id="tagimg" alt="Фото бирки" hidden>
+    <button class="btn" id="scanBtn" disabled>Распознать бирку</button>
+    <div class="result" aria-live="polite">
+      <p class="big" id="scanBig">—</p>
+      <p class="verdict" id="scanTxt"></p>
+      <p class="meta" id="scanOut"></p>
+      <button class="btn" id="applyBtn" hidden>Использовать в оценке срока</button>
+    </div>
+    <p class="note">Фото отправляется Claude для распознавания и тратит ваш лимит Claude. Распознавание может ошибаться, поэтому сверьтесь с самой биркой. Срок рассчитывается как средневзвешенный по долям волокон.</p>
+  </section>
+
+  <section class="panel" id="p4" aria-labelledby="pt" hidden>
+    <h2>Вещи</h2>
+    <p>Срок службы = базовый срок материала × коэффициент толщины ÷ (нагрузка ÷ эталонная нагрузка категории (10 ч в неделю для прочих вещей) × условия × уход). Индекс от 0 до 100 показывает срок относительно 6 лет.</p>
+    <div class="tw"><table id="tm"></table></div>
+    <h2>Категории одежды</h2>
+    <p>У каждой категории свои материалы и эталонная нагрузка: при ней действует указанный базовый срок. Если вы носите вещь больше, срок сокращается пропорционально.</p>
+    <div id="tk"></div>
+    <h2>Возраст</h2>
+    <p>Для детей срок службы делится на коэффициент нагрузки: малыши и дошкольники пачкают, ползают и падают чаще, поэтому вещи изнашиваются быстрее. Рядом указано, через сколько месяцев ребёнок обычно вырастает из размера: реальный срок носки ограничен меньшим из двух значений.</p>
+    <div class="tw"><table id="ta"></table></div>
+    <h2>Состав по бирке</h2>
+    <p>Если на бирке несколько волокон, базовый срок считается как среднее, взвешенное по процентам.</p>
+    <div class="tw"><table id="tf"></table></div>
+    <h2>Обувь</h2>
+    <p>Ресурс в километрах = меньшее из значений верха и подошвы × коэффициент крепления ÷ (условия × уход) × коэффициент состояния. Срок в месяцах получается делением на недельный пробег.</p>
+    <div class="tw"><table id="tu"></table></div>
+    <div class="tw"><table id="ts"></table></div>
+    <div class="tw"><table id="tc"></table></div>
+    <p class="note">Все значения ориентировочные и взяты из типичных диапазонов. Они не заменяют лабораторных испытаний и не учитывают качество конкретной модели.</p>
+  </section>
+</main>
+<footer class="foot">ИзносТест: расчёты ориентировочные, распознавание по фото может ошибаться.<br>На iPhone: «Поделиться» → «На экран Домой». <button class="btn" id="install" hidden>Установить приложение</button></footer>
+
+<script>
+/* Распознавание по фото вне Claude: запрос уходит на ваш сервер (SCAN_ENDPOINT из config.js) */
+if (!window.claude && window.SCAN_ENDPOINT) {
+  const toDataUrl = async file => {
+    const bmp = await createImageBitmap(file);
+    const k = Math.min(1, 1280 / Math.max(bmp.width, bmp.height));
+    const c = document.createElement("canvas");
+    c.width = Math.round(bmp.width * k); c.height = Math.round(bmp.height * k);
+    c.getContext("2d").drawImage(bmp, 0, 0, c.width, c.height);
+    return c.toDataURL("image/jpeg", 0.85);
+  };
+  const fail = code => { const e = new Error(code); e.code = code; return e; };
+  window.claude = { use: async () => ({
+    limits: async () => ({ images: { maxCount: 3 } }),
+    json: async (prompt, opts) => {
+      let images;
+      try { images = await Promise.all((opts.images || []).map(toDataUrl)); } catch (_) { throw fail("image_rejected"); }
+      const kind = /^На фото обувь/.test(prompt) ? "shoe" : "tag";
+      let r;
+      try {
+        r = await fetch(window.SCAN_ENDPOINT, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ kind, images }) });
+      } catch (_) { throw fail("network"); }
+      if (!r.ok) throw fail(r.status === 429 ? "rate_limited" : "network");
+      return await r.json();
+    }
+  }) };
+}
+</script>
+<script>
+const $ = id => document.getElementById(id);
+
+/* Обувь: ресурс в километрах */
+const UPPER = {"leather":["Кожа",1800],"fullgrain":["Кожа полного зерна",2200],"suede":["Замша / нубук",1300],"patent":["Лаковая кожа",1100],"textile":["Текстиль / сетка",900],"canvas":["Холст",900],"knit":["Трикотаж (knit)",800],"membrane":["Текстиль с мембраной",1300],"synthetic":["Искусственная кожа",800],"rubber":["Резина / ПВХ",1200],"felt":["Войлок",700]};
+const SOLE = {"rubber":["Резина",1500],"vibram":["Плотная резина (типа Vibram)",2200],"pu":["Полиуретан",1200],"tpu":["Термополиуретан (TPU)",1500],"eva":["EVA / пена",700],"foam":["Вспененная резина",800],"leather":["Кожа",1000],"crepe":["Крепированный каучук",900],"cork":["Пробка",600],"tpr":["ТПР / ПВХ",900],"mixed":["Композит (резина и EVA)",1100]};
+const CONS = {"goodyear":["Гудиер, шитьё рантом",1.4],"stitched":["Сшитая (блейк, стробель)",1.15],"molded":["Литьевая",1.1],"vulcan":["Вулканизация (кеды)",1.1],"moccasin":["Мокасинная (бесшовная)",1.05],"glued":["Клеевая",1.0]};
+const WEAR = [["Новая",1],["Лёгкий износ",0.75],["Заметный износ",0.4],["Сильный износ",0.1]];
+const SHOE_PROMPT = `На фото обувь (возможно, подошва или маркировка внутри). Определи по внешнему виду и надписям. Ответь ТОЛЬКО JSON без пояснений: {"readable":true или false,"upper":"ключ","sole":"ключ","construction":"ключ","wear":число от 0 до 3,"notes":"коротко по-русски, что видно (трещины, стёртый протектор, отклейка), до 140 символов"}. upper: leather, fullgrain, suede, patent, textile, canvas, knit, membrane, synthetic, rubber, felt. sole: rubber, vibram, pu, tpu, eva, foam, leather, crepe, cork, tpr, mixed. construction: goodyear, stitched, molded, vulcan, moccasin, glued; если крепление не видно, выбери наиболее вероятное для такой обуви. wear: 0 новая, 1 лёгкий износ, 2 заметный, 3 сильный. Если на фото нет обуви, верни readable=false.`;
+function fillSel(id, T){ $(id).innerHTML = Object.keys(T).map(k => '<option value="' + k + '">' + T[k][0] + '</option>').join(""); }
+fillSel("upper", UPPER); fillSel("sole", SOLE); fillSel("cons", CONS);
+$("upper").value = "leather"; $("sole").value = "rubber"; $("cons").value = "glued";
+
+
+/* Кастомные раскрывающиеся варианты; исходные select остаются источником данных расчёта. */
+const choiceTitles = {mat:"Материал", thick:"Толщина материала", care:"Степень ухода"};
+function refreshChoice(id){
+  const select = $(id), details = $(id + "Choice");
+  if (!select || !details) return;
+  const current = select.options[select.selectedIndex];
+  details.querySelector(".choice-current").textContent = current ? current.textContent : "Не выбрано";
+  const list = details.querySelector(".choice-options");
+  list.innerHTML = Array.from(select.options).map((opt,index) =>
+    '<button type="button" class="choice-option" data-index="' + index + '" aria-pressed="' + (opt.selected ? "true" : "false") + '">' + opt.textContent + '</button>'
+  ).join("");
+  list.querySelectorAll("button").forEach(button => button.addEventListener("click", () => {
+    select.selectedIndex = Number(button.dataset.index);
+    select.dispatchEvent(new Event("input", {bubbles:true}));
+    select.dispatchEvent(new Event("change", {bubbles:true}));
+    refreshChoice(id);
+    details.open = false;
+  }));
+}
+function enhanceChoice(id){
+  const select = $(id);
+  if (!select || $(id + "Choice")) return;
+  select.classList.add("choice-native");
+  select.insertAdjacentHTML("afterend",
+    '<details class="choice-details" id="' + id + 'Choice">' +
+      '<summary class="choice-summary"><span class="choice-summary-main"><span class="choice-summary-title">' + choiceTitles[id] + '</span><span class="choice-current"></span></span><span class="choice-chevron" aria-hidden="true">⌄</span></summary>' +
+      '<div class="choice-options"></div></details>'
+  );
+  refreshChoice(id);
+}
+["mat","thick","care"].forEach(enhanceChoice);
+
+/* Категории одежды: материалы с базовым сроком (мес.) при эталонной нагрузке ref (ч в неделю) */
+const GENERIC = [["Нейлон / кордура",48],["Кожа",60],["Деним (джинса)",36],["Полиэстер",40],["Шерсть",30],["Хлопок",24],["Лён",20],["Резина (подошва)",30],["Пластик ABS",60],["Сталь / металл",120],["Мериносовая шерсть",30],["Акрил",22],["Вискоза",14],["Шёлк",18],["Замша",40],["Искусственная кожа",28],["Брезент",60],["ПВХ",36],["Силикон",48],["Поликарбонат",72],["Алюминий",120],["Латунь / бронза",120],["Дерево с лаком",84],["Войлок",24]];
+let catRef = 10, holdTag = false, curAge = null, curType = 0;
+const CATS = {
+  underwear:{t:"Нижнее бельё", c:"Хлопок, модал, микрофибра: срок зависит от стирок и эластичности", d:"Срок службы белья по материалу, носке и уходу.", ref:50, hours:50, def:3,
+    mats:[["Хлопок",24],["Хлопок пима / супима",30],["Органический хлопок",24],["Хлопок с эластаном",20],["Модал",18],["Микромодал",22],["Вискоза",14],["Лиоцелл (тенсель)",20],["Бамбуковое волокно",12],["Микрофибра (полиамид)",30],["Полиэстер",28],["Нейлон с эластаном",26],["Шёлк",12],["Мериносовая шерсть",18],["Кружево (полиамид)",12],["Кружево (хлопок)",10]],
+    tips:["Стирайте при 30–40 °C: горячая вода быстрее разрушает эластан.","Не сушите на батарее и в барабане на высокой температуре.","Растянутая резинка и истончённая ткань означают, что пора менять."]},
+  socks:{t:"Носки и колготки", c:"Пятка, носок и затяжки: что изнашивается первым", d:"Срок службы носков, гольфов и колготок.", ref:40, hours:40, def:0,
+    mats:[["Хлопок с полиамидом",12],["Мериносовая шерсть",14],["Шерсть с полиамидом",16],["Полиамид",16],["Полиэстер",14],["Хлопок",8],["Бамбук / вискоза",8],["Кашемир",10],["Акрил",10],["Лён",10],["Компрессионные (полиамид с эластаном)",12],["Термоносок (полипропилен)",14],["Колготки плотные (микрофибра)",5],["Колготки (нейлон и эластан)",3],["Капрон",2]],
+    tips:["Стирайте в мешке или вывернув наизнанку.","Подстригайте затяжки ножницами, не обрывайте их.","Протёртая пятка или носок означают, что пора менять."]},
+  tops:{t:"Футболки и рубашки", c:"Хлопок, лён, синтетика", d:"Срок службы футболок, рубашек, блуз и свитеров.", ref:20, hours:20, def:0,
+    mats:[["Хлопок",30],["Хлопок пима",36],["Хлопок с эластаном",24],["Футер / трикотаж (хлопок)",30],["Поплин / оксфорд (хлопок)",40],["Фланель (хлопок)",36],["Деним (рубашка)",48],["Лён",24],["Лён с хлопком",28],["Полиэстер",40],["Вискоза",14],["Модал",20],["Лиоцелл",24],["Шёлк",18],["Мериносовая шерсть",30],["Шерсть (свитер)",48],["Кашемир",36],["Акрил (трикотаж)",24]],
+    tips:["Не перегружайте барабан: трение в машине вытирает ткань.","Вещь, вывернутая наизнанку, меньше скатывается и выцветает.","Воротник и манжеты рубашки изнашиваются первыми."]},
+  bottoms:{t:"Брюки и джинсы", c:"Деним, чино, шерсть", d:"Срок службы брюк, джинсов и шорт.", ref:25, hours:25, def:0,
+    mats:[["Деним",48],["Деним с эластаном",30],["Деним плотный (selvedge)",72],["Хлопок (чино)",36],["Хлопок с эластаном",30],["Твил / габардин",48],["Вельвет",40],["Шерсть (костюмная)",48],["Шерсть с полиэстером",54],["Полиэстер",42],["Нейлон / кордура",60],["Софтшелл",48],["Трикотаж (джоггеры)",24],["Лён",24],["Вискоза",14],["Кожа",84]],
+    tips:["Джинсы стирайте реже и в холодной воде.","Протирание на коленях и между ног ускоряет износ: чините вовремя.","Эластан делает ткань удобнее, но она служит меньше."]},
+  outer:{t:"Верхняя одежда", c:"Пуховики, пальто, куртки с мембраной", d:"Срок службы курток, пальто и пуховиков.", ref:20, hours:15, def:0,
+    mats:[["Пух и нейлон",72],["Синтепон",48],["Парка (нейлон с утеплителем)",66],["Мембрана (типа Gore-Tex)",60],["Мембрана 2-слойная",48],["Софтшелл",60],["Ветровка (нейлон)",60],["Плащевая ткань (полиэстер)",48],["Шерстяное пальто",84],["Кашемировое пальто",72],["Хлопковый тренч (габардин)",72],["Джинсовая куртка",72],["Стёганое полотно",40],["Флис",36],["Кожа",96],["Замша",60],["Овчина (дублёнка)",120],["Натуральный мех",120],["Искусственный мех",24]],
+    tips:["Пуховик стирайте деликатно, с мячиками для сушки, чтобы не сбивался пух.","Пропитку мембраны обновляйте после нескольких стирок.","Храните на широких плечиках, не сжимая надолго в чехле."]},
+  hats:{t:"Шапки, шарфы, перчатки", c:"Шерсть, акрил, кожа, мембрана", d:"Срок службы головных уборов, шарфов и перчаток.", ref:15, hours:15, def:0,
+    mats:[["Шерсть",48],["Мериносовая шерсть",42],["Альпака",48],["Мохер",30],["Ангора",20],["Кашемир",36],["Вязка с полиамидом",54],["Акрил",30],["Полиэстер",40],["Флис",36],["Хлопок",36],["Вискоза (трикотаж)",24],["Лён (шарф)",30],["Шёлк (шарф)",24],["Фетр (шерсть)",72],["Соломка",36],["Кепка (твил)",48],["Кожа (перчатки)",72],["Замша (перчатки)",48],["Мембрана (перчатки)",48],["Искусственный мех",24],["Натуральный мех",96]],
+    tips:["Шерсть стирайте вручную в прохладной воде и сушите на плоской поверхности.","Катышки появляются от трения: убирайте их машинкой.","Кожаные перчатки раз в сезон обрабатывайте кремом."]},
+  sport:{t:"Спортивная одежда", c:"Синтетика и эластан: пот, трение, стирки", d:"Срок службы спортивной одежды и белья.", ref:5, hours:5, def:0,
+    mats:[["Дышащий полиэстер",36],["Полиэстер с эластаном (лосины)",28],["Полиамид с эластаном",30],["Лайкра",24],["Компрессионная ткань",24],["Сетка (mesh)",18],["Хлопок",24],["Хлопок с полиэстером",30],["Бамбуковый трикотаж",16],["Мериносовая шерсть",36],["Полипропилен (термобельё)",30],["Флис (термо)",36],["Нейлон (ветровка)",48],["Софтшелл",48],["Мембрана",54],["Неопрен",36]],
+    tips:["Не используйте кондиционер: он забивает влагоотводящие волокна.","Стирайте после каждой тренировки при 30 °C.","Если ткань не возвращается в форму, эластан отслужил."]},
+  bags:{t:"Сумки и рюкзаки", c:"Нейлон, кожа, холст: швы и фурнитура", d:"Срок службы сумок, рюкзаков и чемоданов.", ref:25, hours:25, def:0,
+    mats:[["Нейлон / кордура",72],["Кордура 1000D",108],["Баллистический нейлон",96],["Ripstop нейлон",66],["Полиэстер",48],["Холст (хлопок)",48],["Брезент (вощёный хлопок)",84],["ПВХ / тарпаулин",72],["Джинсовая ткань",48],["Кожа",96],["Кожа растительного дубления",120],["Замша",48],["Искусственная кожа",30],["Полиуретан (PU)",30],["Войлок",24],["Неопрен",36],["Плетёная солома / ротанг",36],["ABS-пластик (чемодан)",60],["Поликарбонат (чемодан)",72],["Алюминий (чемодан)",120]],
+    tips:["Первыми выходят из строя молнии, лямки и углы.","Не перегружайте рюкзак: швы у лямок рвутся от веса.","Кожу раз в сезон протирайте кремом или кондиционером."]},
+  babywear:{t:"Боди и ползунки малыша", c:"Мягкий хлопок, частые стирки, швы наружу", d:"Срок службы одежды для новорождённых и малышей.", ref:60, hours:60, def:0,
+    mats:[["Хлопок (интерлок)",18],["Хлопок (кулирка)",14],["Органический хлопок",16],["Хлопок с эластаном",12],["Муслин",10],["Вафельное полотно",12],["Велюр",14],["Футер с начёсом",16],["Вязаный хлопок",18],["Бамбуковое волокно",8],["Мериносовая шерсть",20],["Флис",24]],
+    tips:["Выбирайте швы наружу и бирки без жёсткого края.","Стирайте детские вещи отдельно при 40 °C гипоаллергенным средством.","Проверяйте кнопки и завязки: оторвавшаяся деталь может оказаться во рту."]},
+  kidswear:{t:"Детская повседневная одежда", c:"Брюки, футболки, платья: колени, локти и стирки", d:"Срок службы повседневной одежды для активных детей.", ref:30, hours:30, def:0,
+    mats:[["Хлопковый трикотаж",20],["Футер",28],["Хлопок с эластаном",18],["Деним детский",30],["Деним с эластаном",22],["Хлопок (твил / саржа)",34],["Вельвет",30],["Флис",30],["Полиэстер",36],["Полиэстер с эластаном",26],["Нейлон (ветровка)",40],["Шерстяной трикотаж",30],["Вискоза",12],["Лён",18],["Мембрана (комбинезон)",48],["Софтшелл",40]],
+    tips:["Колени и локти изнашиваются первыми: выбирайте усиленные вставки.","Пятна стирайте сразу: засохшие детские пятна отстирываются хуже.","Целые вещи передавайте дальше: дети часто вырастают раньше, чем износят одежду."]}
+};
+const AGES = {"age1":{"t":"От 1 месяца до 2 лет","m":"1 мес.–2 года","c":"Боди, комбинезоны, пинетки: частые стирки и быстрый рост","d":"Одежда и обувь для малышей: срок службы с учётом стирок и роста.","k":1.5,"grow":2.5,"growShoe":2,"types":[["Боди и ползунки","babywear"],["Носки и колготки","socks"],["Комбинезон и верхняя одежда","outer"],["Шапочки и варежки","hats"],["Обувь (пинетки, первые ботинки)","shoes"]],"tips":["Малыш быстро растёт: размер часто меняется раз в 2–3 месяца.","Не покупайте много вещей одного размера: многие не успеют износиться."]},"age2":{"t":"От 2 до 5 лет","m":"2–5 лет","c":"Самая активная нагрузка: игры, падения, песочница","d":"Одежда и обувь для дошкольников.","k":1.8,"grow":6,"growShoe":4,"types":[["Повседневная одежда","kidswear"],["Нижнее бельё","underwear"],["Носки и колготки","socks"],["Верхняя одежда","outer"],["Шапки и перчатки","hats"],["Обувь","shoes"],["Рюкзак","bags"]],"tips":["Колени и носки обуви изнашиваются первыми.","Берите вещи с запасом на сезон роста, но не на два размера вперёд."]},"age3":{"t":"От 5 до 8 лет","m":"5–8 лет","c":"Школа, спорт, двор: одежда и рюкзак","d":"Одежда и обувь для младших школьников.","k":1.6,"grow":8,"growShoe":6,"types":[["Повседневная одежда","kidswear"],["Нижнее бельё","underwear"],["Носки и колготки","socks"],["Спортивная одежда","sport"],["Верхняя одежда","outer"],["Шапки и перчатки","hats"],["Школьный рюкзак","bags"],["Обувь","shoes"]],"tips":["В школьной одежде важна плотная ткань на коленях и локтях.","Вес рюкзака ориентировочно не должен превышать 10–15 % веса ребёнка."]},"age4":{"t":"От 8 до 12 лет","m":"8–12 лет","c":"Активный рост, спорт и школьные нагрузки","d":"Одежда и обувь для детей 8–12 лет.","k":1.4,"grow":9,"growShoe":7,"types":[["Нижнее бельё","underwear"],["Носки и колготки","socks"],["Футболки и рубашки","tops"],["Брюки и джинсы","bottoms"],["Спортивная одежда","sport"],["Верхняя одежда","outer"],["Шапки, шарфы, перчатки","hats"],["Сумки и рюкзаки","bags"],["Обувь","shoes"]],"tips":["Следите за размером обуви: между пальцем и носком нужен запас около 1 см.","Спортивную форму стирайте после занятий отдельно от светлых вещей."]},"age5":{"t":"От 13 до 15 лет","m":"13–15 лет","c":"Период быстрого роста и первых взрослых размеров","d":"Одежда и обувь для подростков 13–15 лет.","k":1.2,"grow":10,"growShoe":8,"types":[["Нижнее бельё","underwear"],["Носки и колготки","socks"],["Футболки и рубашки","tops"],["Брюки и джинсы","bottoms"],["Спортивная одежда","sport"],["Верхняя одежда","outer"],["Шапки, шарфы, перчатки","hats"],["Сумки и рюкзаки","bags"],["Обувь","shoes"]],"tips":["В период роста размер меняется быстро: базовые вещи удобнее брать без излишеств.","Разделяйте спортивную и повседневную обувь: так каждая пара служит дольше."]},"age6":{"t":"От 15 до 18 лет","m":"15–18 лет","c":"У мальчиков рост ещё активен, у девочек замедляется","d":"Одежда и обувь для старших подростков. Раздел подойдёт и для 18–20 лет.","k":1.1,"grow":14,"growShoe":12,"types":[["Нижнее бельё","underwear"],["Носки и колготки","socks"],["Футболки и рубашки","tops"],["Брюки и джинсы","bottoms"],["Спортивная одежда","sport"],["Верхняя одежда","outer"],["Шапки, шарфы, перчатки","hats"],["Сумки и рюкзаки","bags"],["Обувь","shoes"]],"tips":["У мальчиков рост в этом возрасте ещё идёт, поэтому верхнюю одежду и обувь лучше брать с запасом. У девочек рост обычно замедляется, и в вещи уже можно вкладываться на более долгий срок."]},"age7":{"t": "От 19 до 35 лет", "m": "19–35 лет", "c": "Взрослые: срок определяется износом и нагрузкой", "d": "Одежда и обувь для людей 19–35 лет.", "k": 1.0, "grow": 0, "growShoe": 0, "types": [["Нижнее бельё", "underwear"], ["Носки и колготки", "socks"], ["Футболки и рубашки", "tops"], ["Брюки и джинсы", "bottoms"], ["Спортивная одежда", "sport"], ["Верхняя одежда", "outer"], ["Шапки, шарфы, перчатки", "hats"], ["Сумки и рюкзаки", "bags"], ["Обувь", "shoes"]], "tips": ["Для взрослых срок определяется только износом материала, а не ростом."]},"age8":{"t": "От 35 до 50 лет", "m": "35–50 лет", "c": "Активная жизнь, работа и смена сезонов", "d": "Одежда и обувь для людей 35–50 лет.", "k": 1.0, "grow": 0, "growShoe": 0, "types": [["Нижнее бельё", "underwear"], ["Носки и колготки", "socks"], ["Футболки и рубашки", "tops"], ["Брюки и джинсы", "bottoms"], ["Спортивная одежда", "sport"], ["Верхняя одежда", "outer"], ["Шапки, шарфы, перчатки", "hats"], ["Сумки и рюкзаки", "bags"], ["Обувь", "shoes"]], "tips": ["Базовые вещи служат дольше, если чередовать их, а не носить подряд.", "Стирайте по уходу на бирке: лишние отжимы и горячая вода быстро портят трикотаж."]},"age9":{"t": "От 50 лет и старше", "m": "50+ лет", "c": "Поддержка стопы и комфорт важнее моды", "d": "Одежда и обувь для людей от 50 лет.", "k": 1.0, "grow": 0, "growShoe": 0, "types": [["Нижнее бельё", "underwear"], ["Носки и колготки", "socks"], ["Футболки и рубашки", "tops"], ["Брюки и джинсы", "bottoms"], ["Спортивная одежда", "sport"], ["Верхняя одежда", "outer"], ["Шапки, шарфы, перчатки", "hats"], ["Сумки и рюкзаки", "bags"], ["Обувь", "shoes"]], "tips": ["У обуви важны подошва и стелька: стёртый каблук и просевшая стелька дают нагрузку на колени и спину.", "Проверяйте верхнюю одежду и обувь на сезонный износ перед холодами."]}};
+function openAge(key){
+  $("atiles").innerHTML = AGES[key].types.map((x, i) => '<button class="card" data-tile="' + i + '"><b>' + x[0] + '</b><span>' + (CATS[x[1]] ? CATS[x[1]].c : "Ресурс в километрах и слабое звено") + '</span></button>').join("");
+  $("p1").dataset.pick = "1";
+}
+function pickType(i){
+  curType = i;
+  delete $("p1").dataset.pick;
+  document.querySelectorAll("#atiles .card").forEach(b => b.classList.toggle("on", +b.dataset.tile === i));
+  applyAgeType();
+}
+function applyAgeType(){
+  const A = AGES[curAge], t = A.types[curType];
+  let tips = [];
+  if (t[1] === "shoes") { $("kind").value = "shoe"; }
+  else { $("kind").value = "item"; applyCat(t[1]); tips = CATS[t[1]].tips; }
+  $("tl").innerHTML = tips.concat(A.tips).map(x => "<li>" + x + "</li>").join("");
+  $("tips").hidden = false;
+  calc1();
+}
+function fillMats(list, def){
+  const tag = $("tagOpt");
+  $("mat").innerHTML = list.map(m => '<option value="' + m[1] + '">' + m[0] + '</option>').join("");
+  if (tag) $("mat").insertBefore(tag, $("mat").firstChild);
+  if (tag && holdTag) $("mat").value = tag.value; else $("mat").selectedIndex = def + (tag ? 1 : 0);
+  holdTag = false;
+  refreshChoice("mat");
+}
+function applyCat(key){
+  const c = CATS[key];
+  fillMats(c ? c.mats : GENERIC, c ? c.def : 2);
+  catRef = c ? c.ref : 10;
+  $("hours").value = c ? c.hours : 10;
+  $("thick").value = "1";
+  refreshChoice("thick");
+  $("tl").innerHTML = c ? c.tips.map(t => "<li>" + t + "</li>").join("") : "";
+  $("tips").hidden = !c;
+}
+
+function fmtMonths(m){
+  const y = Math.floor(m / 12), r = Math.round(m - y * 12);
+  if (y === 0) return "≈ " + Math.max(1, r) + " мес.";
+  return "≈ " + y + " г." + (r ? " " + r + " мес." : "");
+}
+
+function envFactor(){
+  const boxes = [...document.querySelectorAll("#env input:checked")];
+  const extra = boxes.reduce((a, b) => a + (+b.value - 1), 0);
+  return boxes.length ? 1 + extra : 1;
+}
+function updateEnvCount(){
+  const count = document.querySelectorAll("#env input:checked").length;
+  const mod10 = count % 10, mod100 = count % 100;
+  const noun = mod10 === 1 && mod100 !== 11 ? "условие" : mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14) ? "условия" : "условий";
+  const label = count + " " + noun;
+  $("envCount").textContent = label;
+}
+$("env").addEventListener("change", updateEnvCount);
+updateEnvCount();
+function calc1(){
+  $("hv").textContent = $("hours").value;
+  $("kv").textContent = $("km").value;
+  ["hours","km"].forEach(id => {
+    const slider = $(id);
+    const pct = ((+slider.value - +slider.min) / (+slider.max - +slider.min)) * 100;
+    slider.style.setProperty("--range-progress", pct + "%");
+  });
+  const shoe = $("kind").value === "shoe";
+  document.querySelectorAll("[data-g]").forEach(el => { el.hidden = el.dataset.g !== (shoe ? "shoe" : "item"); });
+  const env = envFactor(), care = +$("care").value, ak = curAge ? AGES[curAge].k : 1;
+  let months, extra = "";
+  if (shoe){
+    const up = UPPER[$("upper").value][1], so = SOLE[$("sole").value][1];
+    const km = Math.min(up, so) * CONS[$("cons").value][1] / (env * care * ak) * +$("cond").value;
+    months = km / (+$("km").value * 4.345);
+    extra = "\nОсталось примерно " + Math.round(km) + " км. Слабое звено: " + (so <= up ? "подошва" : "верх") + ".";
+  } else {
+    months = (+$("mat").value) * (+$("thick").value) / ((+$("hours").value / catRef) * env * care * ak);
+  }
+  const idx = Math.min(100, Math.round(months / 72 * 100));
+  let v = "Низкая износостойкость";
+  if (months >= 60) v = "Очень высокая износостойкость";
+  else if (months >= 36) v = "Высокая износостойкость";
+  else if (months >= 12) v = "Средняя износостойкость";
+  $("life").textContent = fmtMonths(months);
+  $("verd").textContent = v;
+  $("bar").style.width = Math.max(3, idx) + "%";
+  if (curAge && AGES[curAge].grow) {
+    const g = shoe ? AGES[curAge].growShoe : AGES[curAge].grow;
+    extra += "\nРебёнок вырастет из размера примерно через " + g + " мес. " + (months > g ? "Вещь износится позже, чем станет мала: её можно передать дальше." : "Вещь износится раньше, чем станет мала.") + "\nРеальный срок носки: " + fmtMonths(Math.min(months, g)) + ".";
+  }
+  $("idx").textContent = "Индекс износостойкости: " + idx + " из 100 (100 соответствует сроку от 6 лет)" + extra;
+}
+
+["kind","upper","sole","cons","cond","km","mat","thick","hours","env","care"].forEach(i => $(i).addEventListener("input", calc1));
+
+/* Навигация по разделам сайта */
+const ROUTES = {
+  home:{n:0, t:"Износостойкость вещей"},
+  items:{n:1, kind:"item", t:"Проверка вещей", d:"Срок службы одежды, сумок и других вещей по материалу и условиям."},
+  shoes:{n:1, kind:"shoe", t:"Проверка обуви", d:"Ресурс обуви в километрах и слабое звено: верх или подошва."},
+  scan:{n:3, t:"Проверка по фото", d:"Сфотографируйте бирку или обувь, и Claude подставит материалы в расчёт."},
+  method:{n:4, t:"Методика", d:"Как устроены расчёты и откуда взяты исходные значения."}
+};
+Object.assign(ROUTES.items, {m:"Другие вещи", c:"Любые изделия по материалу и условиям"});
+Object.assign(ROUTES.shoes, {m:"Обувь", c:"Ресурс в километрах и слабое звено"});
+Object.assign(ROUTES.scan, {m:"По фото", c:"Состав с бирки и состояние обуви по снимку"});
+for (const k in CATS) ROUTES[k] = {n:1, kind:"item", cat:k, t:CATS[k].t, d:CATS[k].d, m:CATS[k].t, c:CATS[k].c};
+const ORDER = ["underwear","socks","tops","bottoms","outer","hats","sport","bags","shoes","items"];
+for (const k in AGES) ROUTES[k] = {n:1, kind:"item", age:k, t:"Возраст: " + AGES[k].t.toLowerCase(), d:AGES[k].d + " Выберите вещь ниже.", m:AGES[k].m, c:AGES[k].c};
+$("ddma").innerHTML = Object.keys(AGES).map(k => '<a href="#' + k + '" data-go="' + k + '">' + ROUTES[k].m + '</a>').join("");
+$("acards").innerHTML = Object.keys(AGES).map(k => '<a class="card" href="#' + k + '" data-go="' + k + '"><b>' + ROUTES[k].m + '</b><span>' + ROUTES[k].c + '</span></a>').join("");
+$("atiles").addEventListener("click", e => { const b = e.target.closest("[data-tile]"); if (b) pickType(+b.dataset.tile); });
+$("ddm").innerHTML = ORDER.map(k => '<a href="#' + k + '" data-go="' + k + '">' + ROUTES[k].m + '</a>').join("");
+$("cards").innerHTML = ["scan"].map(k => '<a class="card" href="#' + k + '" data-go="' + k + '"><b>' + ROUTES[k].m + '</b><span>' + ROUTES[k].c + '</span></a>').join("");
+function showPanel(n){ [0,1,3,4].forEach(i => { $("p"+i).hidden = i !== n; }); }
+function show(n){ if (n === 1) return go($("kind").value === "shoe" ? "shoes" : "items"); showPanel(n); }
+function tbl(id, head, rows){
+  $(id).innerHTML = "<thead><tr>" + head.map(h => "<th>" + h + "</th>").join("") + "</tr></thead><tbody>" + rows.map(r => "<tr>" + r.map(c => "<td>" + c + "</td>").join("") + "</tr>").join("") + "</tbody>";
+}
+function buildMethod(){
+  const mats = GENERIC;
+  tbl("ta", ["Возраст","Коэффициент нагрузки","Рост из одежды, мес.","Рост из обуви, мес."], Object.values(AGES).map(a => [a.m, "×" + a.k, a.grow || "—", a.growShoe || "—"]));
+  const klass = m => m >= 60 ? "очень высокий" : m >= 36 ? "высокий" : m >= 12 ? "средний" : "низкий";
+  $("tk").innerHTML = Object.values(CATS).map(c => "<details><summary>" + c.t + ' <span class="hint">эталонная нагрузка ' + c.ref + " ч в неделю, материалов: " + c.mats.length + "</span></summary><div class=\"tw\"><table><thead><tr><th>Материал</th><th>Базовый срок, мес.</th><th>Класс</th></tr></thead><tbody>" + c.mats.slice().sort((a, b) => b[1] - a[1]).map(m => "<tr><td>" + m[0] + "</td><td>" + m[1] + "</td><td>" + klass(m[1]) + "</td></tr>").join("") + "</tbody></table></div></details>").join("");
+  tbl("tm", ["Материал","Базовый срок, мес."], mats);
+  tbl("tf", ["Волокно (бирка)","Базовый срок, мес."], Object.values(FIBERS).map(v => [v[0], v[1]]));
+  tbl("tu", ["Верх обуви","Ресурс, км"], Object.values(UPPER).map(v => [v[0], v[1]]));
+  tbl("ts", ["Подошва","Ресурс, км"], Object.values(SOLE).map(v => [v[0], v[1]]));
+  tbl("tc", ["Крепление подошвы","Коэффициент"], Object.values(CONS).map(v => [v[0], v[1]]));
+}
+function go(r){
+  if (!ROUTES[r]) r = "home";
+  const R = ROUTES[r];
+  if (R.kind) $("kind").value = R.kind;
+  if (R.n === 1) {
+    curAge = R.age || null;
+    $("agebox").hidden = !curAge;
+    delete $("p1").dataset.pick; curType = 0;
+    if (curAge) openAge(curAge);
+    else if (R.kind === "item") applyCat(R.cat);
+    else $("tips").hidden = true;
+  }
+  showPanel(R.n);
+  $("ptitle").hidden = r === "home";
+  $("pt").textContent = R.t; $("pl").textContent = R.d || "";
+  document.title = (r === "home" ? "" : R.t + " · ") + "Износостойкость вещей";
+  document.querySelectorAll("nav [data-go]").forEach(a => {
+    const on = a.dataset.go === r;
+    a.classList.toggle("on", on);
+    if (on) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current");
+  });
+  document.querySelectorAll(".ddb").forEach(b => b.classList.toggle("on", b.dataset.dd === "age" ? !!R.age : (R.n === 1 && !R.age)));
+  $("nav").classList.remove("open"); $("burger").setAttribute("aria-expanded", "false");
+  document.querySelectorAll(".dd").forEach(d => d.classList.remove("open"));
+  if (R.n === 4) buildMethod();
+  calc1();
+  window.scrollTo(0, 0);
+}
+document.addEventListener("click", e => {
+  const a = e.target.closest("[data-go]");
+  if (a){ e.preventDefault(); go(a.dataset.go); }
+});
+$("burger").onclick = () => { const o = $("nav").classList.toggle("open"); $("burger").setAttribute("aria-expanded", o); };
+document.querySelectorAll(".ddb").forEach(b => b.onclick = () => { const d = b.parentElement, o = !d.classList.contains("open"); document.querySelectorAll(".dd").forEach(x => x.classList.remove("open")); d.classList.toggle("open", o); });
+window.addEventListener("hashchange", () => go(location.hash.slice(1)));
+
+/* Сканер бирки */
+const FIBERS = {"cotton":["Хлопок",24],"pima":["Хлопок пима",30],"linen":["Лён",20],"hemp":["Конопля",36],"wool":["Шерсть",30],"merino":["Мериносовая шерсть",30],"cashmere":["Кашемир",30],"alpaca":["Альпака",40],"mohair":["Мохер",30],"angora":["Ангора",18],"silk":["Шёлк",18],"polyester":["Полиэстер",40],"nylon":["Нейлон / полиамид",48],"acrylic":["Акрил",22],"viscose":["Вискоза",14],"modal":["Модал",18],"lyocell":["Лиоцелл",20],"bamboo":["Бамбук",12],"elastane":["Эластан",15],"polypropylene":["Полипропилен",30],"polyurethane":["Полиуретан (PU)",30],"leather":["Кожа",60],"fur":["Натуральный мех",96],"fauxfur":["Искусственный мех",24],"rubber":["Резина",30],"other":["Другое",25]};
+const ALIAS = {"spandex":"elastane","lycra":"elastane","polyamide":"nylon","tencel":"lyocell","rayon":"viscose","supima":"pima","pu":"polyurethane","microfiber":"polyester","elasthane":"elastane"};
+let scanBase = null, scanLabel = "", shoeRes = null;
+$("scanKind").addEventListener("change", () => {
+  $("scanHint").textContent = $("scanKind").value === "shoe"
+    ? "снимите обувь сбоку; фото подошвы и стельки с маркировкой улучшат результат (до 3 снимков)"
+    : "снимите ярлык с составом крупно или выберите файл";
+  $("applyBtn").hidden = true;
+});
+const fileEl = $("tagfile");
+
+fileEl.addEventListener("change", () => {
+  const f = fileEl.files[0];
+  $("scanBtn").disabled = !f || !f.type.startsWith("image/");
+  $("applyBtn").hidden = true;
+  scanBase = null; shoeRes = null;
+  if (!f) {
+    $("tagimg").removeAttribute("src");
+    $("tagimg").hidden = true;
+    return;
+  }
+  if (!f.type.startsWith("image/")) {
+    $("scanOut").textContent = "Выберите файл изображения.";
+    $("tagimg").hidden = true;
+    return;
+  }
+  const r = new FileReader();
+  r.onload = () => { $("tagimg").src = r.result; $("tagimg").hidden = false; };
+  r.onerror = () => { $("scanOut").textContent = "Не удалось открыть изображение. Попробуйте другой файл."; };
+  r.readAsDataURL(f);
+});
+
+function scanError(code){
+  if (["not_granted","sampling_disabled","not_declared","capability_disabled","capability_removed","images_unavailable"].includes(code))
+    return "Распознавание по фото не настроено: нужен сервер распознавания (см. README). Остальные разделы работают без него.";
+  if (code === "image_rejected") return "Не удалось прочитать фото. Попробуйте другой снимок.";
+  if (code === "rate_limited") return "Слишком много запросов. Попробуйте позже.";
+  if (["invalid_json","empty_completion","refused"].includes(code))
+    return "Не удалось разобрать бирку. Снимите ближе и при хорошем свете.";
+  return "Сбой связи. Попробуйте ещё раз.";
+}
+
+$("scanBtn").onclick = async () => {
+  const f = fileEl.files[0];
+  if (!f) return;
+  const btn = $("scanBtn"), big = $("scanBig"), txt = $("scanTxt"), out = $("scanOut");
+  btn.disabled = true; $("applyBtn").hidden = true; scanBase = null; shoeRes = null;
+  big.textContent = "…"; txt.textContent = ""; out.textContent = "Читаю бирку…";
+  try {
+    const sample = window.claude ? await claude.use("sample") : null;
+    const lim = sample && sample.limits ? await sample.limits() : null;
+    if (!sample || !lim || !lim.images) { big.textContent = "—"; out.textContent = scanError("images_unavailable"); return; }
+    const prompt = "На фото бирка одежды или другого изделия. Найди состав материалов в процентах. " +
+      "Ответь ТОЛЬКО JSON без пояснений: {\"readable\":true или false,\"items\":[{\"fiber\":\"ключ\",\"percent\":число}],\"notes\":\"кратко по-русски: правила ухода или важные пометки, до 120 символов\"}. " +
+      "Ключи fiber только из списка: cotton, pima, linen, hemp, wool, merino, cashmere, alpaca, mohair, angora, silk, polyester, nylon, acrylic, viscose, modal, lyocell, bamboo, elastane, polypropylene, polyurethane, leather, fur, fauxfur, rubber, other. " +
+      "Полиамид это nylon. Если состав не читается, верни readable=false и пустой items.";
+    const imgs = Array.from(fileEl.files).slice(0, Math.min(3, lim.images.maxCount || 3));
+    if ($("scanKind").value === "shoe"){
+      const d = await sample.json(SHOE_PROMPT, { images: imgs, modelTier: "default" });
+      if (!d.readable){ big.textContent = "—"; out.textContent = "Обувь на фото не найдена. Снимите её сбоку при хорошем свете."; return; }
+      const pick = (T, k, fb) => T[k] ? [k, true] : [fb, false];
+      const [uk, uok] = pick(UPPER, d.upper, "textile"), [sk, sok] = pick(SOLE, d.sole, "rubber"), [ck, cok] = pick(CONS, d.construction, "glued");
+      const w = Math.min(3, Math.max(0, Math.round(+d.wear || 0)));
+      shoeRes = { upper: uk, sole: sk, cons: ck, cond: WEAR[w][1] };
+      big.textContent = WEAR[w][0];
+      txt.textContent = "Верх: " + UPPER[uk][0] + ". Подошва: " + SOLE[sk][0] + ". Крепление: " + CONS[ck][0] + ".";
+      let m = "";
+      if (!(uok && sok && cok)) m += "Часть параметров не видна на фото, подставлены типичные значения. Проверьте их в оценке.\n";
+      if (d.notes) m += "На фото: " + d.notes;
+      out.textContent = m || "Определено по фото.";
+      $("applyBtn").hidden = false;
+      return;
+    }
+    const data = await sample.json(prompt, { images: imgs, modelTier: "quick" });
+    const items = (data.items || []).map(i => ({ fiber: ALIAS[i.fiber] || i.fiber, percent: i.percent })).filter(i => FIBERS[i.fiber] && i.percent > 0);
+    const sum = items.reduce((s, i) => s + i.percent, 0);
+    if (!data.readable || !items.length || !sum) { big.textContent = "—"; out.textContent = "Состав на бирке не найден. Снимите ближе и при хорошем свете."; return; }
+    scanBase = items.reduce((s, i) => s + FIBERS[i.fiber][1] * i.percent / sum, 0);
+    scanLabel = items.map(i => FIBERS[i.fiber][0] + " " + Math.round(i.percent) + "%").join(", ");
+    big.textContent = fmtMonths(scanBase);
+    txt.textContent = scanLabel;
+    let msg = "Базовый срок при 10 часах в неделю в обычных условиях.";
+    if (Math.abs(sum - 100) > 5) msg += "\nПроценты в сумме дают " + Math.round(sum) + ": возможно, часть состава не прочиталась.";
+    if (data.notes) msg += "\nНа бирке: " + data.notes;
+    out.textContent = msg;
+    $("applyBtn").hidden = false;
+  } catch (e) {
+    big.textContent = "—";
+    out.textContent = scanError(e && e.code);
+  } finally {
+    btn.disabled = !fileEl.files[0];
+  }
+};
+
+$("applyBtn").onclick = () => {
+  if (shoeRes){
+    $("kind").value = "shoe";
+    $("upper").value = shoeRes.upper; $("sole").value = shoeRes.sole; $("cons").value = shoeRes.cons;
+    $("cond").value = String(shoeRes.cond);
+    show(1); calc1();
+    return;
+  }
+  if (scanBase == null) return;
+  $("kind").value = "item";
+  const old = $("tagOpt");
+  if (old) old.remove();
+  const o = document.createElement("option");
+  o.id = "tagOpt"; o.value = scanBase.toFixed(1); o.textContent = "По бирке: " + scanLabel;
+  $("mat").insertBefore(o, $("mat").firstChild);
+  $("mat").value = o.value;
+  refreshChoice("mat");
+  holdTag = true;
+  show(1); calc1();
+};
+calc1();
+go(location.hash.slice(1));
+
+/* PWA: офлайн-кэш и кнопка установки */
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
+let deferredInstall = null;
+window.addEventListener("beforeinstallprompt", e => { e.preventDefault(); deferredInstall = e; $("install").hidden = false; });
+$("install").onclick = async () => { if (!deferredInstall) return; deferredInstall.prompt(); await deferredInstall.userChoice; deferredInstall = null; $("install").hidden = true; };
+</script>
+</body>
+</html>
